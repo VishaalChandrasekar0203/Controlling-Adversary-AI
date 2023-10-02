@@ -1,4 +1,26 @@
-Adversary machine learning 
-AML is the process of extracting information about the behaviour and characteristics of a machine learning model 
-Also, learning to manipulate the input into a ML model in order to reach a better outcome (This project: also restrict the output)
+I believe this project showcases commitment to technological innovation and dedication to making a positive impact on society, particularly for young minds.
 
+Project Overview:
+The project revolves around harnessing the power of artificial intelligence to create a safe and engaging bedtime story experience for children. The primary goals of this project are as follows:
+-	Adversarial AI Control: Developing sophisticated algorithms and machine learning models to detect and mitigate adversarial attacks on AI systems. This ensures that the content delivered to children is safe and appropriate.
+-	Interactive Storytelling: Creating an interactive and immersive storytelling platform that adapts to the child's preferences, age, and interests, offering a personalized and magical bedtime experience.
+-	Child Safety: Implementing robust safety measures to protect children from harmful or inappropriate content while maintaining a fun and enjoyable experience.
+
+Technological Innovation:
+To achieve these objectives, we are leveraging cutting-edge technologies such as natural language processing (NLP), computer vision, deep learning, and reinforcement learning. It also involves a multi-step methodology that includes data collection, adversarial AI detection, and the development of a storytelling model.
+Methodology:
+Data Collection and Preprocessing-
+-	Utilize web scraping and curated databases to collect a wide variety of children's stories.
+-	Clean and preprocess the data, removing any inappropriate or adversarial content.
+-	Anonymize and tokenize the text for model training. (Built-in tokenizer)
+Adversarial AI Detection-
+-	Train machine learning models to detect anomalous patterns in AI-generated content integrating Isolation Forest, One-Class SVM, or autoencoders.
+-	Implement real-time monitoring and alert systems to respond to adversarial attempts with implementation of feedback loop to investigate flagged content.
+-	Develop countermeasures to neutralize adversarial AI effects.
+Storytelling Model Development-
+-	Implement a neural network-based architecture such as RNN or transformers for generating bedtime stories.
+-	Fine-tune the model using the preprocessed dataset on filters and constraints with regards to ensure quality and safety.
+-	Continuously evaluate and improve the model's storytelling capabilities with loss functions and optimization techniques.
+
+
+This project demonstrates technical prowess and addressing complex challenges in the field of artificial intelligence which is ethics and the practice of using AI. 
