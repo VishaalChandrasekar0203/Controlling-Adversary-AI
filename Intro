@@ -26,6 +26,18 @@ Storytelling Model Development-
 This project demonstrates technical prowess and addressing complex challenges in the field of artificial intelligence which is ethics and the practice of using AI. 
 
 
+Detailed explanation:
+Importing clean dataset, training with carefully curated dataset
+Data augumentation - small perturbation for model resilience 
+training on both clean and unclean language 
+checking input for anomalies or malicios content - 
+limiting the input 
+RLHF - reniforcement learning with human feedback
+
+
+
+
+
 
 reference:
 https://llm-attacks.org/zou2023universal.pdf
