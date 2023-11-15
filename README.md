@@ -28,6 +28,10 @@ Trail 1:
 Using of 2 activation functions in one nn
 Implement security on AI 
 
+Trail 2: 
+while using optimizer, adding ARCA - coordinate accent algorithm 
+Iteratively updating a token 
+
 Output:
 Restrictions of words, controlled outcomes 
 Improvinf the capability of learning the non harmful way 
