@@ -1,13 +1,19 @@
-import numpy as np
 import re
 import torch
+import numpy as np
+from itertools import islice
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
+def generate_n_gram_sequences(token_list):
+    for i in range(1, len(token_list)):
+        yield token_list[:i+1]
+
 # Read the entire content of the file
-with open("/Users/vishaalchandrasekar/Desktop/Final_project/fairy_tales.txt", "r") as df:
+# Specify the encoding when opening the file
+with open(r"C:\Users\vchan\Desktop\adv AI\fairy_tales.txt", "r", encoding="utf-8") as df:
     stories = df.read()
 
 stories = re.sub(r'[^\w\s]', '', stories.lower())
@@ -18,62 +24,69 @@ tokenizer.fit_on_texts([stories])  # Pass a list of strings to fit_on_texts
 
 total_words = len(tokenizer.word_index) + 1
 
-# Create input sequences
-input_sequences = []
-token_list = tokenizer.texts_to_sequences([stories])[0]
-for i in range(1, len(token_list)):
-    n_gram_sequence = token_list[:i+1]
-    input_sequences.append(n_gram_sequence)
+# Create input sequences using a generator
+input_sequences_generator = generate_n_gram_sequences(tokenizer.texts_to_sequences([stories])[0])
 
-# Pad sequences
-max_sequence_length = max([len(x) for x in input_sequences])
-input_sequences = pad_sequences(input_sequences, maxlen=max_sequence_length, padding='pre')
+# Process sequences in small batches
+batch_size = 1000
+for batch_sequences in iter(lambda: list(islice(input_sequences_generator, batch_size)), []):
+    # Pad sequences
+    max_sequence_length = max(len(seq) for seq in batch_sequences)
+    input_sequences_padded = pad_sequences(batch_sequences, maxlen=max_sequence_length, padding='pre')
 
-# Check if input_sequences is not empty before proceeding
-if input_sequences.size > 0:
-    X, y = input_sequences[:, :-1], input_sequences[:, -1]
+    # Convert to numpy array for further processing
+    input_sequences_array = np.array(input_sequences_padded)
 
-    # Load pre-trained GPT-2 model and tokenizer
-    model_name = 'gpt2'
-    tokenizer_gpt2 = GPT2Tokenizer.from_pretrained(model_name)
-    model_gpt2 = GPT2LMHeadModel.from_pretrained(model_name)
+    # Check if input_sequences_array is not empty before proceeding
+    if input_sequences_array.size > 0:
+        X, y = input_sequences_array[:, :-1], input_sequences_array[:, -1]
 
-    # Convert input sequences to tensors
-    input_ids = torch.tensor(X)
-    labels = torch.tensor(y)
+        # Load pre-trained GPT-2 model and tokenizer
+        model_name = 'gpt2'
+        tokenizer_gpt2 = GPT2Tokenizer.from_pretrained(model_name)
+        model_gpt2 = GPT2LMHeadModel.from_pretrained(model_name)
 
-    # Define PyTorch Dataset and DataLoader
-    dataset = torch.utils.data.TensorDataset(input_ids, labels)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=4, shuffle=True)
+        # Convert input sequences to tensors
+        input_ids = torch.tensor(X)
+        labels = torch.tensor(y)
 
-    # Define loss function and optimizer
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model_gpt2.parameters(), lr=0.001)
+        # Reshape labels to match the expected shape
+        labels = labels.view(-1)
 
-    # Training loop
-    epochs = 5
-    for epoch in range(epochs):
-        for batch in dataloader:
-            inputs, labels = batch
-            optimizer.zero_grad()
-            outputs = model_gpt2(inputs, labels=labels)
-            loss = criterion(outputs.logits, labels)
-            loss.backward()
-            optimizer.step()
+        # Define PyTorch Dataset and DataLoader
+        dataset = torch.utils.data.TensorDataset(input_ids, labels)
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=4, shuffle=True)
 
-    # Save the trained model
-    model_gpt2.save_pretrained('bedtime_story_model')
+        # Rest of your code remains unchanged...
 
-    def generate_bedtime_story(prompt, model, tokenizer, max_length=100):
-        input_ids = tokenizer.encode(prompt, return_tensors='pt')
-        output = model.generate(input_ids, max_length=max_length, num_beams=5, no_repeat_ngram_size=2, top_k=50, top_p=0.95)
-        generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
-        return generated_text
 
-    prompt = "Once upon a time in a magical land,"
-    generated_story = generate_bedtime_story(prompt, model_gpt2, tokenizer_gpt2)
-    print(generated_story)
+        # Define loss function and optimizer
+        criterion = torch.nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(model_gpt2.parameters(), lr=0.001)
 
-else:
-    # Handle the case when input_sequences is empty
-    print("Input sequences list is empty. Please check your data.")
+        # Training loop
+        for epoch in range(epochs):
+            for batch in dataloader:
+                inputs, labels = batch
+                optimizer.zero_grad()
+
+        # Ensure labels have the correct shape
+                labels = labels.view(-1)
+
+                outputs = model_gpt2(inputs, labels=labels)
+                Loss = criterion(outputs.logits.view(-1, outputs.logits.size(-1)), labels)
+                loss.backward()
+                optimizer.step()
+
+        # Save the trained model
+        model_gpt2.save_pretrained('bedtime_story_model')
+
+        def generate_bedtime_story(prompt, model, tokenizer, max_length=100):
+            input_ids = tokenizer.encode(prompt, return_tensors='pt')
+            output = model.generate(input_ids, max_length=max_length, num_beams=5, no_repeat_ngram_size=2, top_k=50, top_p=0.95)
+            generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+            print(generated_text)
+
+    else:
+        # Handle the case when input_sequences_array is empty
+        print("Input sequences list is empty. Please check your data.")
