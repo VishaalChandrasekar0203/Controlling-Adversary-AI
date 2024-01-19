@@ -8,6 +8,12 @@ If adults don't believe in AI, How would they belive AI in the hands of their ch
 Goal:
 Write stories for children without harmful text and simplified text generation process.
 
+Updated goal: 
+security depried AI API - pull into any system and the AI adapts to the own domain
+starting with childrens stories 
+ AI model to adapt to AI models and provides with the best security that is sutiable for it's own.
+ -
+
 Things to be achived  in this project :
 Evaluation of baises
 Risk management
