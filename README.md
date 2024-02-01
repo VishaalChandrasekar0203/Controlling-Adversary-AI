@@ -12,6 +12,7 @@ Updated goal:
 security depried AI API - pull into any system and the AI adapts to the own domain
 starting with childrens stories 
  AI model to adapt to AI models and provides with the best security that is sutiable for it's own.
+ Start with :training model on adversial techniques 
  -
 
 Things to be achived  in this project :
