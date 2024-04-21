@@ -26,6 +26,14 @@ Storytelling Model Development-
 This project demonstrates technical prowess and addressing complex challenges in the field of artificial intelligence which is ethics and the practice of using AI. 
 
 
+Features of security: 
+- RLHF
+- prediction of outcomes (vurneability detection)
+- display restrictions(data abstractions)
+- find trends on dataset
+- track back of a neural network, find the agent and kill it.
+- ensemble model : 
+
 Detailed explanation:
 Importing clean dataset, training with carefully curated dataset
 Data augumentation - small perturbation for model resilience 
@@ -34,7 +42,8 @@ checking input for anomalies or malicios content -
 limiting the input 
 RLHF - reniforcement learning with human feedback
 
-
+Controductive thought: If security is implemented to aviod bad decsions all together, doesn't some good things happen with bad decisions.
+(refer note 1) 
 
 error: 
 
@@ -78,6 +87,10 @@ Traceback (most recent call last):
     return torch._C._nn.cross_entropy_loss(input, target, weight, _Reduction.get_enum(reduction), ignore_index, label_smoothing)
 ValueError: Expected input batch_size (3996) to match target batch_size (3).
 Press any key to continue . . .
+
+
+Product Furture overview:
+Controlling the predictions outcomes of a AI model, similar to the security features implemented in a gen llm model. 
 
 
 reference:
