@@ -44,6 +44,7 @@ RLHF - reniforcement learning with human feedback
 
 Controductive thought: If security is implemented to aviod bad decsions all together, doesn't some good things happen with bad decisions.
 (refer note 1) 
+substintianal conclusion: bad desicions come with bad data 
 
 error: 
 
@@ -100,5 +101,6 @@ https://www.hindawi.com/journals/scn/2023/8691095/
 https://towardsdatascience.com/adversarial-attacks-in-machine-learning-and-how-to-defend-against-them-a2beed95f49c
 https://llm-attacks.org/
 https://arxiv.org/pdf/2303.04381.pdf
+https://en.wikipedia.org/wiki/Ensemble_learning
 
 
