@@ -1,0 +1,2 @@
+note 1 : topic: probability of good things happening with a bad event : The probability of something good happening when there are also bad events can be calculated by scaling the probabilities of good and bad events so that they add up to 1. 
+For example, if there is a 75% chance of something good happening and a 25% chance of something bad happening, then the probability of something good happening is 75% + 25%, or pp+q. The probability of something bad happening is qp+q.
