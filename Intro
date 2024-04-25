@@ -34,6 +34,12 @@ Features of security:
 - track back of a neural network, find the agent and kill it.
 - ensemble model : 
 
+security on AI (research documentation):
+- Compartmentalizing AI Process: seperating and restricitng AI workspaces 
+- zero trust model: verfiying system user continously, authontication and authorization 
+- Behaviour analysis / sentimental analysis 
+- machine learning for anomaly detection 
+
 Detailed explanation:
 Importing clean dataset, training with carefully curated dataset
 Data augumentation - small perturbation for model resilience 
@@ -41,6 +47,10 @@ training on both clean and unclean language
 checking input for anomalies or malicios content - 
 limiting the input 
 RLHF - reniforcement learning with human feedback
+
+extensive thoughts:
+AI rely almost on data, a rely factor on any aspect is always a vurnability. Why not AI create its own data for training. 
+just give out the real world parameters and situations with which it can generate all possible outcomes and set it up as its own data then the mother AI can train its own sub-models.
 
 Controductive thought: If security is implemented to aviod bad decsions all together, doesn't some good things happen with bad decisions.
 (refer note 1) 
