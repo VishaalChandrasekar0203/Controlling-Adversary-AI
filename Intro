@@ -48,6 +48,12 @@ checking input for anomalies or malicios content -
 limiting the input 
 RLHF - reniforcement learning with human feedback
 
+Regulations and Standards to be covered:
+- ISO / IEC 27001 : Information securoty management system 
+- ISO / IEC FDIS 5338, ISO / IEC / IEEE 12207, ISO / IEC/ IEEE 15288 : Software lifecycle process ( broadly can be applicable for AI with few modifications )
+- SAMM : Software assurance maturity model 
+- 
+
 extensive thoughts:
 AI rely almost on data, a rely factor on any aspect is always a vurnability. Why not AI create its own data for training. 
 just give out the real world parameters and situations with which it can generate all possible outcomes and set it up as its own data then the mother AI can train its own sub-models.
@@ -113,7 +119,7 @@ https://llm-attacks.org/
 https://arxiv.org/pdf/2303.04381.pdf
 https://en.wikipedia.org/wiki/Ensemble_learning
 https://www.geeksforgeeks.org/top-10-python-libraries-for-cybersecurity/
-
+https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/KI/Security-of-AI-systems_fundamentals.pdf?__blob=publicationFile&v=4
 
 
 
