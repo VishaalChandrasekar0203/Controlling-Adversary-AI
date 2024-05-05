@@ -31,8 +31,8 @@ Features of security:
 - prediction of outcomes (vurneability detection)
 - display restrictions(data abstractions)
 - find trends on dataset
-- track back of a neural network, find the agent and kill it.
-- ensemble model : 
+- track back of a neural network, find the agent and kill it. ( variable o/p possibility ; set of entire outcomes is completetely erased when killing a neuron in the network ) 
+- ensemble model : -- 
 
 security on AI (research documentation):
 - Compartmentalizing AI Process: seperating and restricitng AI workspaces 
