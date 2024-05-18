@@ -48,6 +48,13 @@ checking input for anomalies or malicios content -
 limiting the input 
 RLHF - reniforcement learning with human feedback
 
+ARCHITECTURE: 
+{ First layer of neural network : using FAT ( Friendly adversarial training ) architecture with filtering inputs and outliers removal.
+Security Layer: 
+Model behaviors testing and Sentimental analysis. - mid model 
+Differential Privacy for adding controlled noise, encrypting input data, 
+Last layer : Content filtering and regenerating , restrictions based on age.}
+
 Regulations and Standards to be covered:
 - ISO / IEC 27001 : Information securoty management system 
 - ISO / IEC FDIS 5338, ISO / IEC / IEEE 12207, ISO / IEC/ IEEE 15288 : Software lifecycle process ( broadly can be applicable for AI with few modifications )
@@ -62,52 +69,10 @@ Controductive thought: If security is implemented to aviod bad decsions all toge
 (refer note 1) 
 substintianal conclusion: bad desicions come with bad data 
 
-error: 
-
-2023-12-07 11:52:49.086257: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\__init__.py:155: UserWarning: A NumPy version >=1.18.5 and <1.25.0 is required for this version of SciPy (detected version 1.26.2
-  warnings.warn(f"A NumPy version >={np_minversion} and <{np_maxversion}"
-WARNING:tensorflow:From C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\keras\src\losses.py:2976: The name tf.losses.sparse_softmax_cross_entropy is deprecated. Please use tf.compat.v1.losses.sparse_softmax_cross_entropy instead.
-
-Traceback (most recent call last):
-  File "C:\ProgramData\Anaconda3\lib\runpy.py", line 197, in _run_module_as_main
-    return _run_code(code, main_globals, None,
-  File "C:\ProgramData\Anaconda3\lib\runpy.py", line 87, in _run_code
-    exec(code, run_globals)
-  File "c:\program files\microsoft visual studio\2022\community\common7\ide\extensions\microsoft\python\core\debugpy\__main__.py", line 45, in <module>
-    cli.main()
-  File "c:\program files\microsoft visual studio\2022\community\common7\ide\extensions\microsoft\python\core\debugpy/..\debugpy\server\cli.py", line 444, in main
-    run()
-  File "c:\program files\microsoft visual studio\2022\community\common7\ide\extensions\microsoft\python\core\debugpy/..\debugpy\server\cli.py", line 285, in run_file
-    runpy.run_path(target_as_str, run_name=compat.force_str("__main__"))
-  File "C:\ProgramData\Anaconda3\lib\runpy.py", line 288, in run_path
-    return _run_module_code(code, init_globals, run_name,
-  File "C:\ProgramData\Anaconda3\lib\runpy.py", line 97, in _run_module_code
-    _run_code(code, mod_globals, init_globals,
-  File "C:\ProgramData\Anaconda3\lib\runpy.py", line 87, in _run_code
-    exec(code, run_globals)
-  File "C:\Users\vchan\Desktop\CF_project\adv\adv.py", line 75, in <module>
-    outputs = model_gpt2(inputs, labels=labels)
-  File "C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\torch\nn\modules\module.py", line 1518, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\torch\nn\modules\module.py", line 1527, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\transformers\models\gpt2\modeling_gpt2.py", line 1107, in forward
-    loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
-  File "C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\torch\nn\modules\module.py", line 1518, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\torch\nn\modules\module.py", line 1527, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\torch\nn\modules\loss.py", line 1179, in forward
-    return F.cross_entropy(input, target, weight=self.weight,
-  File "C:\Users\vchan\AppData\Roaming\Python\Python39\site-packages\torch\nn\functional.py", line 3053, in cross_entropy
-    return torch._C._nn.cross_entropy_loss(input, target, weight, _Reduction.get_enum(reduction), ignore_index, label_smoothing)
-ValueError: Expected input batch_size (3996) to match target batch_size (3).
-Press any key to continue . . .
-
 
 Product Furture overview:
 Controlling the predictions outcomes of a AI model, similar to the security features implemented in a gen llm model. 
+talk with pediatrician on development of children’s mental capabilities 
 
 
 reference:
