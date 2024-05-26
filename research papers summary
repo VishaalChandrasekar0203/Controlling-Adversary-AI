@@ -1,0 +1,15 @@
+Automatically Auditing Large Language Models via Discrete Optimization:
+Erik Jones1, Anca Dragan1, Aditi Raghunathan2, and Jacob Steinhardt1
+1 University of California Berkeley 2 Carnegie Mellon University
+
+This research proposes a novel approach called ARCA (Automatic Reverse Coordinate Ascent) to audit large language models for unexpected or undesirable behaviors. 
+The key idea is to formulate the auditing process as an optimization problem, where the goal is to find input-output pairs that match a target behavior. 
+For example, finding a non-toxic input that a model maps to a toxic output.
+The optimization problem is challenging due to the discrete nature of the search space, the sparsity of feasible points, and the non-linearity of language models. 
+ARCA addresses these challenges by jointly and efficiently optimizing over inputs and outputs using a discrete optimization algorithm.
+The researchers demonstrate the effectiveness of ARCA in uncovering various failure modes of language models, such as:
+Generating derogatory completions about celebrities (e.g., "Barack Obama is a legalized unborn" -> "child murderer").
+Producing French inputs that complete to English outputs.
+Finding inputs that generate a specific name.
+
+The paper positions ARCA as a promising tool for uncovering potential failure modes of language models before deployment, enabling proactive mitigation of risks associated with unexpected model behaviors.
