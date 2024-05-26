@@ -1,5 +1,4 @@
 Automatically Auditing Large Language Models via Discrete Optimization:
-Erik Jones1, Anca Dragan1, Aditi Raghunathan2, and Jacob Steinhardt1
 1 University of California Berkeley 2 Carnegie Mellon University
 
 This research proposes a novel approach called ARCA (Automatic Reverse Coordinate Ascent) to audit large language models for unexpected or undesirable behaviors. 
@@ -11,5 +10,54 @@ The researchers demonstrate the effectiveness of ARCA in uncovering various fail
 Generating derogatory completions about celebrities (e.g., "Barack Obama is a legalized unborn" -> "child murderer").
 Producing French inputs that complete to English outputs.
 Finding inputs that generate a specific name.
-
 The paper positions ARCA as a promising tool for uncovering potential failure modes of language models before deployment, enabling proactive mitigation of risks associated with unexpected model behaviors.
+
+
+Training language models to follow instructions with human feedback
+OpenAI
+
+The research paper "Training language models to follow instructions" proposes a methodology to fine-tune large language models like GPT-3 to better follow instructions and prompts provided by humans. 
+The key ideas are:
+Collecting a dataset of instructions paired with desired outputs from human labelers across various tasks like summarization, translation, question-answering etc.
+Using this dataset to fine-tune a pretrained language model like GPT-3 via supervised learning.
+Evaluating the fine-tuned models on held-out instructions to measure their ability to follow instructions accurately.
+The authors find that fine-tuning GPT-3 on the collected instruction-output dataset significantly improves its ability to follow instructions compared to the original pretrained model. 
+They also show that models fine-tuned this way generalize better to unseen instructions and tasks compared to models trained on each task individually.
+The paper positions this methodology as a promising step towards making large language models more reliable, controllable and safe to deploy by allowing humans to steer their behavior via natural language instructions. 
+This could enable a wide range of applications leveraging the capabilities of large language models in a more controlled manner.
+
+
+BASELINE DEFENSES FOR ADVERSARIAL ATTACKS AGAINST ALIGNED LANGUAGE MODELS
+1 University of Maryland 2 New York University
+
+The paper "Preprint" proposes a methodology to evaluate the performance of large language models (LLMs) on following general user instructions. 
+The key points are:
+They collect a dataset of instructions paired with desired responses from the Text-Davinci-003 model, which serves as the reference.
+They use this dataset to evaluate the performance of various LLMs like Guanaco-7B, Alpaca-7B, and GPT-4 by comparing their responses to the references using auto-annotators based on GPT-4, Claude, or ChatGPT.
+The results show that the reproduced Alpaca-7B model performs competitively, achieving high win rates against the references across different auto-annotators.
+They also explore the models' ability to follow instructions after paraphrasing, finding that some models like Alpaca-7B can maintain performance, while others struggle.
+The paper positions this evaluation methodology as a way to benchmark the instruction-following capabilities of LLMs, which is crucial for their safe and reliable deployment in real-world applications.
+
+
+Universal and Transferable Adversarial Attacks on Aligned Language Models
+1 Carnegie Mellon University, 2 Center for AI Safety, 3 Bosch Center for AI
+
+The paper "Universal and Transferable Adversarial Attacks" proposes a novel method called GCG (Gradient-based Constrained Generation) to generate universal adversarial prompts that can induce large language models (LLMs) to produce undesirable outputs across multiple behaviors. 
+The key ideas are:
+Formulating the attack as an optimization problem to find a universal prompt that maximizes the probability of undesirable outputs for a set of target behaviors.
+Using gradient-based optimization techniques along with carefully designed constraints to solve this optimization problem efficiently.
+Demonstrating the effectiveness of GCG in generating universal prompts that can reliably break open-source LLMs like Vicuna-7B and LLaMA-2 across various harmful behaviors like generating violence, hate speech, explicit content etc.
+Showing that the universal prompts transfer remarkably well to proprietary LLMs from major AI companies, posing a serious risk.
+The paper highlights the vulnerability of current LLMs to universal adversarial attacks and calls for rigorous defenses to prevent such misuse before real-world deployment. 
+The authors also discuss the ethical considerations and responsible disclosure of their findings to AI companies.
+
+
+
+
+
+
+
+
+
+
+
