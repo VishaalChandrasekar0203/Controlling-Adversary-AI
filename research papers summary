@@ -52,9 +52,19 @@ The paper highlights the vulnerability of current LLMs to universal adversarial 
 The authors also discuss the ethical considerations and responsible disclosure of their findings to AI companies.
 
 
+Universal and Transferable Adversarial Attacks on Aligned Language Models
+1 Carnegie Mellon University, 2 Center for AI Safety, 3 Google DeepMind, 4 Bosch Center for AI
 
-
-
+Overview
+The research demonstrates the ability to automatically construct adversarial attacks on large language models (LLMs) like ChatGPT, Bard, and Claude.
+These attacks involve appending specially crafted character sequences (adversarial prompts) to user queries, causing the LLM to produce unintended and potentially harmful responses.
+Methodology:
+The adversarial prompts are generated in an automated fashion by optimizing the probability of the LLM providing an "unfiltered" answer to the user's request.
+While the prompts are optimized for open-source LLMs like Vicuna-7B and LLaMA-2, they transfer remarkably well to closed-source models like ChatGPT, Bard, and Claude.
+Implications:
+The research highlights the vulnerability of current LLMs to automated adversarial attacks, raising concerns about their safety and reliability, especially as they are increasingly used in autonomous applications.
+The authors emphasize the need for rigorous defenses against such attacks before deploying LLMs in real-world systems.
+The website presents examples demonstrating the effectiveness of these adversarial attacks in inducing harmful behaviors like generating violence, hate speech, and explicit content from LLMs.
 
 
 
