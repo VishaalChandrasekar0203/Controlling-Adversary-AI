@@ -74,6 +74,12 @@ Product Furture overview:
 Controlling the predictions outcomes of a AI model, similar to the security features implemented in a gen llm model. 
 talk with pediatrician on development of children’s mental capabilities 
 
+ARCH : 
+'''mermaid
+graph TD;
+A-->B;
+B-->C;
+'''
 
 reference:
 https://llm-attacks.org/zou2023universal.pdf
