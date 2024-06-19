@@ -48,6 +48,11 @@ checking input for anomalies or malicios content -
 limiting the input 
 RLHF - reniforcement learning with human feedback
 
+Revised explination: 
+AI model trained on adversarial inputs and perplexity filtering, scans excisting business AI mdoels and checks for vulnerabilities and fixes them.
+all calls of inputs for the business AI goes through the excisting APi for the base model
+providing security infrastructure all through out 
+
 ARCHITECTURE: 
 { First layer of neural network : using FAT ( Friendly adversarial training ) architecture with filtering inputs and outliers removal.
 Security Layer: 
