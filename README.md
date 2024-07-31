@@ -1,4 +1,6 @@
 # Controlling-Adversary-AI
+securing and controlling adversarial AI 
+
 Tell stories with AI 
 
 In this age of rapidly growing AI, an average 75% of the kids now a days have a phone at the age of 12.
