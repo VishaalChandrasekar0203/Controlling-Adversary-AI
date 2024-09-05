@@ -1,0 +1,389 @@
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+import os
+import numpy as np
+import zipfile
+from PIL import Image
+import gzip
+import tempfile
+import shutil
+import struct
+
+# UNet architecture
+class UNet(nn.Module):
+    def __init__(self, in_channels=1, out_channels=1, hidden_size=64):
+        super(UNet, self).__init__()
+        self.enc1 = self.conv_block(in_channels, hidden_size)
+        self.enc2 = self.conv_block(hidden_size, hidden_size*2)
+        self.enc3 = self.conv_block(hidden_size*2, hidden_size*4)
+        self.dec3 = self.conv_block(hidden_size*4, hidden_size*2)
+        self.dec2 = self.conv_block(hidden_size*2, hidden_size)
+        self.dec1 = nn.Conv2d(hidden_size, out_channels, kernel_size=1)
+
+    def conv_block(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, 3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x, t):
+        enc1 = self.enc1(x)
+        enc2 = self.enc2(F.max_pool2d(enc1, 2))
+        enc3 = self.enc3(F.max_pool2d(enc2, 2))
+        dec3 = self.dec3(F.interpolate(enc3, scale_factor=2))
+        dec2 = self.dec2(F.interpolate(dec3, scale_factor=2))
+        out = self.dec1(dec2)
+        return out
+
+# Diffusion process
+class DiffusionModel:
+    def __init__(self, num_timesteps=1000, beta_start=1e-4, beta_end=0.02, device='cpu'):
+        self.num_timesteps = num_timesteps
+        self.device = device
+        self.beta = torch.linspace(beta_start, beta_end, num_timesteps).to(device)
+        self.alpha = 1 - self.beta
+        self.alpha_bar = torch.cumprod(self.alpha, dim=0)
+
+    def forward_diffusion(self, x0, t):
+        noise = torch.randn_like(x0, device=self.device)
+        alpha_t = self.alpha_bar[t].view(-1, 1, 1, 1)
+        return torch.sqrt(alpha_t) * x0 + torch.sqrt(1 - alpha_t) * noise, noise
+
+    def reverse_diffusion(self, model, xt, t):
+        predicted_noise = model(xt, t)
+        alpha_t = self.alpha_bar[t].view(-1, 1, 1, 1)
+        beta_t = self.beta[t].view(-1, 1, 1, 1)
+        return (1 / torch.sqrt(alpha_t)) * (xt - (beta_t / torch.sqrt(1 - alpha_t)) * predicted_noise)
+                     
+class MNISTDataset(Dataset):
+    def __init__(self, root_dir, train=True, transform=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.train = train
+
+        if self.train:
+            images_file = os.path.join(root_dir, 'train-images.idx3-ubyte')
+            labels_file = os.path.join(root_dir, 'train-labels.idx1-ubyte')
+        else:
+            images_file = os.path.join(root_dir, 't10k-images.idx3-ubyte')
+            labels_file = os.path.join(root_dir, 't10k-labels.idx1-ubyte')
+
+        self.images = self._read_images(images_file)
+        self.labels = self._read_labels(labels_file)
+
+        print(f"Loaded {'training' if self.train else 'test'} set: {len(self.images)} images")
+
+    def _read_images(self, file_path):
+        with open(file_path, 'rb') as f:
+            magic, size = struct.unpack(">II", f.read(8))
+            nrows, ncols = struct.unpack(">II", f.read(8))
+            data = np.frombuffer(f.read(), dtype=np.dtype(np.uint8).newbyteorder('>'))
+            data = data.reshape((size, nrows, ncols))
+        return data
+
+    def _read_labels(self, file_path):
+        with open(file_path, 'rb') as f:
+            magic, size = struct.unpack(">II", f.read(8))
+            data = np.frombuffer(f.read(), dtype=np.dtype(np.uint8).newbyteorder('>'))
+        return data
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, idx):
+        image = self.images[idx]
+        label = int(self.labels[idx])
+
+        # Convert to PIL Image for compatibility with torchvision transforms
+        image = Image.fromarray(image)
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
+
+# Training loop
+def train(model, diffusion, dataloader, num_epochs, device):
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+    for epoch in range(num_epochs):
+        for batch, _ in tqdm(dataloader):
+            x0 = batch.to(device)
+            t = torch.randint(0, diffusion.num_timesteps, (x0.shape[0],)).to(device)
+            xt, noise = diffusion.forward_diffusion(x0, t)
+            predicted_noise = model(xt, t.float().unsqueeze(1).unsqueeze(2).unsqueeze(3))
+            loss = F.mse_loss(predicted_noise, noise)
+            if torch.isnan(loss):
+                print(f"NaN loss detected at epoch {epoch+1}")
+                return
+            optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)  # Add this line
+            optimizer.step()
+        print(f"Epoch {epoch+1}, Loss: {loss.item()}")
+
+# Sampling
+def sample(model, diffusion, num_samples, image_size, device):
+    model.eval()
+    with torch.no_grad():
+        x = torch.randn(num_samples, 1, image_size, image_size).to(device)
+        print(f"Initial x range: {x.min().item()} to {x.max().item()}")
+        for t in tqdm(range(diffusion.num_timesteps - 1, -1, -1)):
+            t_batch = torch.full((num_samples,), t, device=device, dtype=torch.long)
+            x = diffusion.reverse_diffusion(model, x, t_batch)
+            if torch.isnan(x).any():
+                print(f"NaN detected at step {t}")
+                x = torch.where(torch.isnan(x), torch.zeros_like(x), x)  # Replace NaNs with zeros
+            if t % 100 == 0:
+                print(f"Step {t}, x range: {x.min().item()} to {x.max().item()}")
+    return x
+
+
+# Function to extract zip file to a temporary directory
+def extract_zip_to_temp(zip_path):
+    temp_dir = tempfile.mkdtemp()
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(temp_dir)
+    print(f"Extracted contents of {zip_path} to temporary directory")
+    return temp_dir
+
+# Test functions
+def test_unet(model, device):
+    x = torch.randn(1, 1, 28, 28).to(device)
+    t = torch.zeros(1).long().to(device)
+    output = model(x, t)
+    print(f"UNet output shape: {output.shape}")
+    print(f"UNet output range: {output.min().item()} to {output.max().item()}")
+       
+def test_diffusion(diffusion, device):
+    x0 = torch.randn(1, 1, 28, 28).to(device)
+    t = torch.tensor([500]).to(device)
+    xt, noise = diffusion.forward_diffusion(x0, t)
+    print(f"Forward diffusion output range: {xt.min().item()} to {xt.max().item()}")
+
+def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    image_size = 28
+    batch_size = 128
+    num_epochs = 150
+
+    # Path to your MNIST data
+    data_path = r"C:\Users\vchan\Desktop\SampleDiffusion\mnist_data"
+
+    # Define the transform
+    transform = transforms.Compose([
+        transforms.Resize((image_size, image_size)),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+    ])
+
+    # Create the dataset and dataloader
+    try:
+        train_dataset = MNISTDataset(root_dir=data_path, train=True, transform=transform)
+        train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        
+        test_dataset = MNISTDataset(root_dir=data_path, train=False, transform=transform)
+        test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+        
+        print(f"Successfully created datasets and dataloaders.")
+        print(f"Training dataset size: {len(train_dataset)}")
+        print(f"Test dataset size: {len(test_dataset)}")
+    except Exception as e:
+        print(f"Error creating dataset: {str(e)}")
+        return
+    
+    for batch, _ in train_dataloader:
+        print(f"Sample batch shape: {batch.shape}")
+        print(f"Sample batch range: {batch.min().item()} to {batch.max().item()}")
+        plt.imshow(batch[0].squeeze().numpy(), cmap='gray')
+        plt.show()
+        break
+
+    model = UNet().to(device)
+    diffusion = DiffusionModel(device=device)
+
+    test_unet(model, device)
+    
+    test_diffusion(diffusion, device)
+
+    train(model, diffusion, train_dataloader, num_epochs, device)
+
+    samples = sample(model, diffusion, num_samples=16, image_size=image_size, device=device)
+
+    # Visualize the samples
+    plt.figure(figsize=(10, 10))
+    for i in range(16):
+        plt.subplot(4, 4, i+1)
+        plt.imshow(samples[i].cpu().squeeze().numpy(), cmap='gray', vmin=0, vmax=1)
+        plt.imshow((samples[i].cpu().squeeze().numpy() + 1) / 2, cmap='gray')
+        plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    main()
+    
+
+
+
+
+
+output : 
+
+Loaded training set: 60000 images
+Loaded test set: 10000 images
+Successfully created datasets and dataloaders.
+Training dataset size: 60000
+Test dataset size: 10000
+Sample batch shape: torch.Size([128, 1, 28, 28])
+Sample batch range: -1.0 to 1.0
+UNet output shape: torch.Size([1, 1, 28, 28])
+UNet output range: -1.6359195709228516 to 0.9355247020721436
+Forward diffusion output range: -4.416133880615234 to 3.1606388092041016
+100%|██████████| 469/469 [00:08<00:00, 54.74it/s]Epoch 1, Loss: 0.5719277858734131
+
+100%|██████████| 469/469 [00:08<00:00, 56.49it/s]Epoch 2, Loss: 0.4594738483428955
+
+100%|██████████| 469/469 [00:08<00:00, 56.08it/s]Epoch 3, Loss: 0.37999066710472107
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 55.71it/s]Epoch 4, Loss: 0.286092072725296
+
+
+
+-----------------------------------------------------------------------------------------------
+
+100%|██████████| 469/469 [00:08<00:00, 56.41it/s]
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 55.78it/s]
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 56.39it/s]
+Epoch 121, Loss: 0.04976674169301987
+100%|██████████| 469/469 [00:08<00:00, 56.83it/s]
+Epoch 122, Loss: 0.04988790303468704
+100%|██████████| 469/469 [00:08<00:00, 56.17it/s]
+Epoch 123, Loss: 0.06342510133981705
+100%|██████████| 469/469 [00:08<00:00, 56.60it/s]
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 57.34it/s]Epoch 125, Loss: 0.04728179797530174
+
+100%|██████████| 469/469 [00:08<00:00, 56.41it/s]Epoch 126, Loss: 0.0443185493350029
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 57.62it/s]Epoch 127, Loss: 0.051575012505054474
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 57.40it/s]Epoch 128, Loss: 0.04212343692779541
+
+100%|██████████| 469/469 [00:08<00:00, 57.59it/s]
+  0%|          | 0/469 [00:00<?, ?it/s]Epoch 129, Loss: 0.050638169050216675
+100%|██████████| 469/469 [00:08<00:00, 56.64it/s]
+Epoch 130, Loss: 0.047187257558107376
+100%|██████████| 469/469 [00:08<00:00, 57.40it/s]Epoch 131, Loss: 0.035352401435375214
+
+100%|██████████| 469/469 [00:08<00:00, 56.21it/s]
+  0%|          | 0/469 [00:00<?, ?it/s]Epoch 132, Loss: 0.06571581959724426
+100%|██████████| 469/469 [00:08<00:00, 55.77it/s]
+Epoch 133, Loss: 0.05452102795243263
+100%|██████████| 469/469 [00:08<00:00, 56.39it/s]Epoch 134, Loss: 0.048759277909994125
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 55.77it/s]Epoch 135, Loss: 0.053865548223257065
+
+100%|██████████| 469/469 [00:08<00:00, 56.76it/s]
+Epoch 136, Loss: 0.04413202032446861
+100%|██████████| 469/469 [00:08<00:00, 55.68it/s]
+Epoch 137, Loss: 0.04237586259841919
+100%|██████████| 469/469 [00:08<00:00, 56.80it/s]
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 57.00it/s]
+Epoch 139, Loss: 0.04545252025127411
+100%|██████████| 469/469 [00:08<00:00, 56.15it/s]Epoch 140, Loss: 0.04855543002486229
+
+100%|██████████| 469/469 [00:08<00:00, 56.63it/s]Epoch 141, Loss: 0.04973846301436424
+
+100%|██████████| 469/469 [00:08<00:00, 57.04it/s]Epoch 142, Loss: 0.055008161813020706
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 58.17it/s]
+Epoch 143, Loss: 0.042817600071430206
+100%|██████████| 469/469 [00:08<00:00, 56.87it/s]
+  0%|          | 0/469 [00:00<?, ?it/s]
+100%|██████████| 469/469 [00:08<00:00, 56.99it/s]Epoch 145, Loss: 0.049393877387046814
+
+100%|██████████| 469/469 [00:08<00:00, 55.55it/s]
+Epoch 146, Loss: 0.04846440255641937
+100%|██████████| 469/469 [00:08<00:00, 55.25it/s]
+Epoch 147, Loss: 0.05084996670484543
+100%|██████████| 469/469 [00:08<00:00, 54.86it/s]
+Epoch 148, Loss: 0.04536041244864464
+100%|██████████| 469/469 [00:08<00:00, 57.04it/s]
+Epoch 149, Loss: 0.0442211776971817
+100%|██████████| 469/469 [00:08<00:00, 57.88it/s]Epoch 150, Loss: 0.05274178832769394
+
+Initial x range: -3.4587111473083496 to 3.9267020225524902
+  0%|          | 0/1000 [00:00<?, ?it/s]NaN detected at step 981
+NaN detected at step 960
+  4%|▍         | 45/1000 [00:00<00:02, 410.65it/s]NaN detected at step 939
+NaN detected at step 938
+NaN detected at step 916
+NaN detected at step 915
+Step 900, x range: -4.855725817197979e+27 to 1.3987704124622347e+27
+NaN detected at step 892
+NaN detected at step 867
+ 14%|█▎        | 136/1000 [00:00<00:01, 655.48it/s]NaN detected at step 841
+NaN detected at step 813
+Step 800, x range: -1.7067090214754714e+17 to 4.68046165615575e+16
+NaN detected at step 783
+ 24%|██▎       | 237/1000 [00:00<00:00, 773.68it/s]NaN detected at step 751
+NaN detected at step 716
+Step 700, x range: -1.779401729507328e+16 to 4604920053366784.0
+NaN detected at step 677
+ 34%|███▍      | 338/1000 [00:00<00:00, 830.04it/s]NaN detected at step 634
+NaN detected at step 633
+Step 600, x range: -1.1628108041047627e+27 to 4.260264014608175e+25
+NaN detected at step 584
+NaN detected at step 583
+NaN detected at step 576
+NaN detected at step 569
+NaN detected at step 568
+ 44%|████▍     | 438/1000 [00:00<00:00, 860.01it/s]NaN detected at step 561
+NaN detected at step 553
+NaN detected at step 546
+NaN detected at step 537
+NaN detected at step 529
+NaN detected at step 520
+NaN detected at step 512
+NaN detected at step 502
+Step 500, x range: -1.3912380167230115e+35 to 2.005726297282676e+35
+NaN detected at step 493
+NaN detected at step 483
+NaN detected at step 473
+ 54%|█████▎    | 536/1000 [00:00<00:00, 872.28it/s]NaN detected at step 462
+NaN detected at step 451
+NaN detected at step 439
+NaN detected at step 428
+NaN detected at step 414
+NaN detected at step 401
+Step 400, x range: -7.319448609068877e+33 to 1.6635276077771794e+34
+NaN detected at step 386
+NaN detected at step 371
+ 64%|██████▎   | 636/1000 [00:00<00:00, 884.29it/s]NaN detected at step 354
+NaN detected at step 337
+NaN detected at step 316
+NaN detected at step 315
+Step 300, x range: -1.9523388594957815e+37 to 2.9540584209165724e+37
+NaN detected at step 294
+NaN detected at step 266
+ 74%|███████▎  | 736/1000 [00:00<00:00, 893.88it/s]NaN detected at step 236
+Step 200, x range: -3.711666759781533e+37 to 8.12385853777927e+37
+NaN detected at step 192
+ 84%|████████▎ | 837/1000 [00:00<00:00, 903.03it/s]NaN detected at step 125
+Step 100, x range: -8.351800108416012e+34 to 1.8292346714098065e+35
+ 94%|█████████▍| 940/1000 [00:01<00:00, 913.92it/s]Step 0, x range: -5.6724417072567735e+35 to 1.135712258105875e+36
+100%|██████████| 1000/1000 [00:01<00:00, 860.39it/s]
+
