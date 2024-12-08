@@ -1,5 +1,5 @@
 # Controlling-Adversary-AI
-securing and controlling adversarial AI 
+Securing and controlling adversarial AI 
 
 Tell stories with AI 
 
